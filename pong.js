@@ -1,6 +1,10 @@
 const canvas = document.getElementById('pongCanvas');
 const context = canvas.getContext('2d');
 
+// Prevent default touch actions to stop scrolling
+canvas.addEventListener('touchstart', (e) => e.preventDefault());
+canvas.addEventListener('touchmove', (e) => e.preventDefault());
+
 // Resize canvas to fit the screen
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -18,8 +22,9 @@ const paddleHeight = 100;
 let paddle1Y = (canvas.height - paddleHeight) / 2;
 let paddle2Y = (canvas.height - paddleHeight) / 2;
 
-// Controls
-let touchY = null;
+// Touch coordinates
+let touch1Y = null;
+let touch2Y = null;
 
 // Draw everything on the canvas
 function draw() {
@@ -63,25 +68,44 @@ function move() {
     }
 
     // Move paddles
-    if (touchY !== null) {
+    if (touch1Y !== null) {
+        const paddleCenter = paddle1Y + paddleHeight / 2;
+        const direction = touch1Y - paddleCenter;
+        paddle1Y += direction * 0.1;
+    }
+    if (touch2Y !== null) {
         const paddleCenter = paddle2Y + paddleHeight / 2;
-        const direction = touchY - paddleCenter;
+        const direction = touch2Y - paddleCenter;
         paddle2Y += direction * 0.1;
     }
 }
 
 // Touch event listeners
 canvas.addEventListener('touchstart', (e) => {
-    touchY = e.touches[0].clientY;
+    e.preventDefault();
+    handleTouch(e);
 });
 
 canvas.addEventListener('touchmove', (e) => {
-    touchY = e.touches[0].clientY;
+    e.preventDefault();
+    handleTouch(e);
 });
 
 canvas.addEventListener('touchend', () => {
-    touchY = null;
+    touch1Y = null;
+    touch2Y = null;
 });
+
+function handleTouch(e) {
+    for (let i = 0; i < e.touches.length; i++) {
+        const touch = e.touches[i];
+        if (touch.clientX < canvas.width / 2) {
+            touch1Y = touch.clientY;
+        } else {
+            touch2Y = touch.clientY;
+        }
+    }
+}
 
 // Game loop
 function gameLoop() {
